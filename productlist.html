@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .wrap{
+            /* display: flex; */
+            width: 1200px;
+            padding: 10px;
+            /* margin: auto; */
+        }
+        .center{
+            margin: auto;
+            display: flex;
+        }
+        
+        img{
+            width: 100%;
+            vertical-align: top;
+        }
+        label,input,button{
+            margin: 5px;
+        }
+        .ProductType_Search, .ProductPrice_Search, .Product_Search{
+            
+            text-align: center;
+            
+            
+        } 
+        
+        .col-3{width: 25%;}
+        .col-12{width: 100%;}
+        @media screen and (width >=768px) {
+            .col-mid-3{width: 25%;}
+            .col-mid-6{width: 50%;}
+            .col-mid-9{width: 75%;}
+            .col-mid-12{width: 100%;}
+        }
+        @media screen and (width >=1024px) {
+            .col-xl-3{width: 25%;}
+            .col-xl-6{width: 50%;}
+            .col-xl-9{width: 75%;}
+            .col-xl-12{width: 100%;}
+        }
+        .nostock{
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #0008;
+            color: white;
+            font-size: 50px;
+            display: flex;
+            justify-items: center;
+            /* justify-content: center; */
+            /* align-items: center; */
+        }
+        .bd{
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <table class="table table-bordered table-striped"></table>
+
+
+    <div class="ProductType_Search">
+        <label for="">選擇產品類型</label>
+        <input type="text" id="producttype_filter">   
+        <button id="producttype_btn">確定</button>
+        <table id="producttype_table" class="table table-bordered table-striped"></table>
+    </div>
+
+    <div class="ProductPrice_Search">
+        <label for="">價格範圍</label>
+        <input type="text" id="productprice_filter_down">
+        <label for="">~</label>
+        <input type="text" id="productprice_filter_up">
+        <button id="productprice_btn">確定</button>
+        <table id="productprice_table" class="table table-bordered table-striped"></table>
+        
+    </div>
+    <div class="Product_Search">
+        <label for="">商品編號查詢</label>
+        <input type="text" id="ProductNumber_filter">
+        <button id="productnumber_btn">確定</button>
+        <table id="productnumber_table" class="table table-bordered table-striped"></table>
+    </div>
+
+    <!-- ------------------------------------------------------------------------ -->
+
+    <div class="wrap center">
+        <select id="select">
+            <option value="none">商品類型查詢</option>
+        </select>
+        <div class="price">
+            價格：
+            <input type="text" placeholder=" 最小值" id="min">
+            ~
+            <input type="text" placeholder=" 最大值" id="max">
+        </div>
+        <button id="searchBtn">搜尋</button>
+        
+    </div>
+    <main></main>
+
+
+    <script type="module">
+        
+        import{product} from "./product.js";
+
+
+
+        var inpVal ="";
+        function getInputValue_productType(){
+            inpVal = document.getElementById("producttype_filter").value;
+            console.log(inpVal);
+        }
+
+        var inp_pricedown = 0;
+        var inp_priceup = 0;
+        function getInputValue_productPrice(){
+            inp_pricedown = document.getElementById("productprice_filter_down").value;
+            inp_priceup = document.getElementById("productprice_filter_up").value;
+        }
+        
+        var numbervalue="";
+        function getInputValue_productnumber(){
+            numbervalue = document.getElementById("ProductNumber_filter").value;
+        }
+
+
+        let thead,tbody,table;
+      
+        function createTable(){
+            table =  document.querySelector("table");
+            thead = document.createElement("thead");
+            tbody = document.createElement("tbody");
+            createThead();
+            createTbody();
+            table.appendChild(thead);
+            table.appendChild(tbody);
+
+        }
+        function createThead(){
+            let theadTR = document.createElement("tr");
+           
+            Object.keys(product[0]).forEach(key => {
+                const th = document.createElement("th");
+                th.innerText = key;
+                theadTR.appendChild(th);
+            });
+            thead.appendChild(theadTR);
+        }
+
+        function createTbody(){
+            product.forEach(item=>{
+                let tr = document.createElement("tr");
+                Object.values(item).forEach(value=>{
+                    let td = document.createElement("td");
+                    td.innerText = value;
+                    tr.append(td);
+                })
+                tbody.appendChild(tr);
+            })
+        }
+        
+        function creatProductNumberTable(){
+            let numTable = document.getElementById("productnumber_table");
+            numTable.innerHTML="";
+            // 建立表頭行
+            const headerRow = document.createElement("tr");
+            headerRow.innerHTML = "<th>商品編號</th><th>商品名稱</th><th>數量</th><th>價格</th><th>類型</th>";
+            numTable.appendChild(headerRow);
+            let Product_numbers = product.filter(item=>item.ProductNumber===numbervalue);
+            Product_numbers.forEach(product=>{
+                const row = document.createElement("tr");
+                row.innerHTML = `<td>${product.ProductNumber}</td><td>${product.ProductName}</td><td>${product.Amount}</td><td>${product.Price}</td><td>${product.ProductType}</td>`;
+                numTable.appendChild(row);
+            })
+        }
+
+        function createProducttypeTable(){
+            let typeTable = document.getElementById("producttype_table");
+                
+            // 先清空表格
+            typeTable.innerHTML = "";
+            // 建立表頭行
+            const headerRow = document.createElement("tr");
+            headerRow.innerHTML = "<th>商品編號</th><th>商品名稱</th><th>數量</th><th>價格</th><th>類型</th>";
+            typeTable.appendChild(headerRow);
+            // 建立資料行
+            const drinks = product.filter(item => item.ProductType === inpVal);
+                console.log(drinks);
+
+
+            drinks.forEach(product => {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td>${product.ProductNumber}</td><td>${product.ProductName}</td><td>${product.Amount}</td><td>${product.Price}</td><td>${product.ProductType}</td>`;
+                typeTable.appendChild(row);
+            });
+        }
+
+        function createProductPriceTable(){
+                let PriceTable = document.getElementById("productprice_table");
+                PriceTable.innerHTML = "";
+                // 建立表頭行
+                const headerRow = document.createElement("tr");
+                headerRow.innerHTML = "<th>商品編號</th><th>商品名稱</th><th>數量</th><th>價格</th><th>類型</th>";
+                PriceTable.appendChild(headerRow);
+
+                // 建立資料行
+                const morethandata = product.filter(item => item.Price >= inp_pricedown);
+                const lessthandata = morethandata.filter(item=>item.Price <=inp_priceup);
+
+
+                lessthandata.forEach(product => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `<td>${product.ProductNumber}</td><td>${product.ProductName}</td><td>${product.Amount}</td><td>${product.Price}</td><td>${product.ProductType}</td>`;
+                    PriceTable.appendChild(row);
+                });
+        }
+
+
+        // col-12 col-md-3
+        function loadData(data) {
+            let productList = data.map((product, index) => `
+            <div class="bd col-12 col-xl-3 col-mid-6" id='product${index}'>
+                <div class="pic">
+                    <img src="https://picsum.photos/200/200/?random=${index}">
+                </div>
+                <div class="text">
+                    <h2>${product.ProductName}</h2>
+                    <h3>價格：${product.Price} 元</h3>
+                    <div class="detail">
+                        <p>剩餘數量：${product.Amount}</p>
+                        <p>分類：${product.ProductType}</p>
+                    </div>
+                </div>
+            </div>
+        `).join('')
+
+            let container = `
+            <div class="container wrap">
+                <div class="row">
+                    ${productList}
+                </div>
+            </div>
+            `
+
+            let main = document.querySelector('main')
+            main.innerHTML = container
+
+            data.forEach((item, index) => {
+                let product = document.getElementById('product' + index)
+                if(item.Amount == 0){
+                    let div = document.createElement('div')
+                    div.classList.add('nostock')
+                    div.innerHTML = "無庫存"
+                    product.append(div)
+                }
+            })
+        }
+        function Search(){
+            let productList;
+            let select = document.getElementById('select')
+            if (select.value != 'none') {
+                productList = product.filter((product) => {
+                    return product.ProductType == select.value
+                });
+            }
+            else {
+                productList = product
+            }
+
+            let max = document.getElementById('max').value;
+            if (max === '') {
+                max = 99999;
+            }
+            let min = document.getElementById('min').value;
+            if (min === '') {
+                min = 0;
+            }
+            if (Number(min) > Number(max)) {
+                alert('最小值不能大於最大值');
+                return;
+            }
+
+            productList = productList.filter((product) => {
+                return product.Price <= max && product.Price >= min
+            });
+
+           
+
+            
+
+            if(productList.length == 0){
+                alert('查無商品')
+                return
+            }
+
+            loadData(productList)
+
+        }
+
+        function selectType() {
+            let select = document.getElementById('select')
+
+            let productType = product.map(item => item.ProductType)
+            let NewProductType = [...new Set(productType)]
+
+            NewProductType.forEach(item => {
+                let option = document.createElement('option')
+                option.innerText = item
+                option.value = item
+                select.appendChild(option)
+            })
+        }
+
+        window.onload = function(){
+            createTable();
+            
+            const producttype_btn =document.getElementById("producttype_btn");
+            producttype_btn.addEventListener("click",function(){   
+                getInputValue_productType();
+                createProducttypeTable();
+            })
+
+            const productprice_btn = document.getElementById("productprice_btn");
+            productprice_btn.addEventListener("click",function(){
+                getInputValue_productPrice();
+                createProductPriceTable();
+            })
+            const productnumber_btn =document.getElementById("productnumber_btn");
+            productnumber_btn.addEventListener("click",function(){
+                getInputValue_productnumber();
+                creatProductNumberTable();
+            })
+
+            selectType();
+            loadData(product);
+
+            let btn = document.getElementById("searchBtn");
+            btn.onclick = Search
+        }
+
+
+    </script>
+
+  
+</body>
+</html>
